@@ -5,10 +5,20 @@
 package com.indexer;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javaexperiment.FileWalkerTest;
 import javaexperiment.FileWalkerTreeModel;
 import javax.swing.JFileChooser;
 import javax.swing.JTree;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 
 /**
  *
@@ -16,23 +26,43 @@ import javax.swing.JTree;
  */
 public class SwingIndexer extends javax.swing.JFrame {
 
-  //  FileWalkerTreeModel fWalkerModel;
+    private DefaultMutableTreeNode root;
+    private ArrayList<File> directories;
+    // private DefaultTreeModel treeModel;
+    //  FileWalkerTreeModel fWalkerModel;
     FileWalkerTest fWalkerModel;
+
     public SwingIndexer() {
-        
+
+
+       // jTree1.setCellRenderer(null);
+        root = new DefaultMutableTreeNode();
+        directories = new ArrayList<>();
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode();
+        // treeModel = new DefaultTreeModel(root);
         initComponents();
     }
 
+    private void createNodes() {
+        
+        for (File directory : directories) {
+            DefaultMutableTreeNode item = new DefaultMutableTreeNode(directory.toString());
+            root.add(item);
+
+        }
+
+        jTree1.updateUI();
+
+       
+
+    }
     /**
      * Creates new form SwingIndexer
      */
-   
     private String fPath;
     // FileWalkerTreeModel fWalkerModel = new FileWalkerTreeModel(fPath);
-    
- //   JFileChooser fc;
-   
 
+    //   JFileChooser fc;
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -44,7 +74,7 @@ public class SwingIndexer extends javax.swing.JFrame {
 
         jFileChooser1 = new javax.swing.JFileChooser();
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTree1 = new JTree(fWalkerModel);
+        jTree1 = new JTree(root);
         jPanel1 = new javax.swing.JPanel();
         chooseBtn = new javax.swing.JButton();
         jProgressBar1 = new javax.swing.JProgressBar();
@@ -59,6 +89,7 @@ public class SwingIndexer extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
+        jTree1.setCellRenderer(new FileTreeCellRenderer());
         jScrollPane1.setViewportView(jTree1);
 
         chooseBtn.setText("Choose Folder");
@@ -67,6 +98,8 @@ public class SwingIndexer extends javax.swing.JFrame {
                 chooseBtnActionPerformed(evt);
             }
         });
+
+        jProgressBar1.setIndeterminate(true);
 
         jLabel1.setText("Status");
 
@@ -127,34 +160,49 @@ public class SwingIndexer extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void chooseBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_chooseBtnActionPerformed
-        
-        //Handle open button action.
-    if (evt.getSource() == chooseBtn) {
-        
-        jLabel1.setText("Please choos ethe foder");
-        int returnVal = this.jFileChooser1.showOpenDialog(this);
 
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = jFileChooser1.getCurrentDirectory();
-            fPath = file.getName();
-            fWalkerModel = new FileWalkerTest(fPath);
-          // Object o = jTree1.getModel();
-            
-            
-        } else {
-            System.out.println("OPEN cOMMAND WAS CANCELLED"); 
+        //Handle open button action.
+        if (evt.getSource() == chooseBtn) {
+
+            jLabel1.setText("Please choos ethe foder");
+            int returnVal = this.jFileChooser1.showOpenDialog(this);
+
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                File file = jFileChooser1.getSelectedFile();
+                fPath = file.getPath();
+                System.out.println(fPath);
+
+                //If you want to use MaxDepth you need to pass opts as and Collections.emptySet().
+                Set<FileVisitOption> opts = Collections.emptySet();
+                try {
+                    fWalkerModel = new FileWalkerTest(fPath);
+                } catch (IOException ex) {
+                    Logger.getLogger(SwingIndexer.class.getName()).log(Level.SEVERE, null, ex);
+                }
+//                try {
+//                    Files.walkFileTree(fWalkerModel.path, opts, 2, fWalkerModel);
+//                } catch (IOException ex) {
+//                    Logger.getLogger(SwingIndexer.class.getName()).log(Level.SEVERE, null, ex);
+//                }
+                directories = fWalkerModel.fGetfnodes();
+                // Object o = jTree1.getModel();
+             //  jProgressBar1.
+                 createNodes();
+
+
+
+            } else {
+                System.out.println("OPEN cOMMAND WAS CANCELLED");
+            }
+
+            jLabel1.setText(fPath);
         }
-        
-        jLabel1.setText(fPath);
-   }
-   
+
     }//GEN-LAST:event_chooseBtnActionPerformed
 
     private void jFileChooser1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jFileChooser1ActionPerformed
-       
     }//GEN-LAST:event_jFileChooser1ActionPerformed
 
-  
     /**
      * @param args the command line arguments
      */

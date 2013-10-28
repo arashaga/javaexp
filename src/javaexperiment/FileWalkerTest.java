@@ -4,8 +4,11 @@
  */
 package javaexperiment;
 
+import com.indexer.SwingIndexer;
 import java.awt.List;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Files;
@@ -13,10 +16,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.tree.DefaultMutableTreeNode;
-
 
 /**
  *
@@ -25,28 +31,29 @@ import javax.swing.tree.DefaultMutableTreeNode;
 public class FileWalkerTest implements FileVisitor<Path> {
 
     //  HashMap<Object, Object> fileAttributes;
-    
     //private String sPath;
     private Path root;
+    private ArrayList<DefaultMutableTreeNode> dNode;
 
-    
-    public ArrayList<Path> getChild() {
-        
-        return child;
+    public int getChild() {
+
+        return 1;
     }
-    private ArrayList<Path> child;
+    private ArrayList<File> fNodes;
 
     public Path fGetRoot() {
         return root;
     }
-
- 
     public Path path;
 
     public Path getPath() {
         return path;
     }
 
+    public ArrayList<File> fGetfnodes() {
+
+        return fNodes;
+    }
     private DefaultMutableTreeNode top;
     public HashMap<Path, Path> data;
     private BasicFileAttributes attr;
@@ -55,15 +62,18 @@ public class FileWalkerTest implements FileVisitor<Path> {
 //
 //    HashMap<Path, Path> data;
 //    private BasicFileAttributes attr;    }
-
-   public FileWalkerTest(String path) {
+    public FileWalkerTest(String path) throws IOException {
         data = new HashMap<>();
         this.path = Paths.get(path);
-        
-    }
+        fNodes = new ArrayList<>();
+        Go();
 
+    }
     
-    
+    private void Go() throws IOException{
+        Set<FileVisitOption> opts = Collections.emptySet();
+        Files.walkFileTree(this.path, opts, 2, this);
+    }
 
     public BasicFileAttributes Search(Path file) {
 
@@ -87,39 +97,29 @@ public class FileWalkerTest implements FileVisitor<Path> {
 
     @Override
     public FileVisitResult preVisitDirectory(Path t, BasicFileAttributes bfa) throws IOException {
-        System.out.format("\n-Directory %s%n", t);
-         root = t.getRoot();
-         
-        System.out.format("%s%n",t.getParent());
-        if(t.getParent()!= null && t.getParent() != root) {
-         //  this.child[] = t.getParent();
-            top = new DefaultMutableTreeNode(root.toString());
-            
-            child.add(t);
+
+        File file = t.toFile();
+        if (file.isDirectory()) {
+            System.out.format("\n-Directory %s%n", t);
+            fNodes.add(file);
+
+        } else if (file.isFile()) {
+            System.out.format("\n--File: %s%n", t);
         }
-        
-        top.add(top);
-        data.put(t.getFileName(), t);
+
+
         return FileVisitResult.CONTINUE;
     }
-    
-    public DefaultMutableTreeNode getTop(){
-        
+
+    public DefaultMutableTreeNode getTop() {
+
         return top;
     }
 
     @Override
     public FileVisitResult visitFile(Path t, BasicFileAttributes bfa) throws IOException {
-//        if (bfa.isDirectory()) {
-//            System.out.format("\n-Directory %s%n", t);
-//        } else if (bfa.isRegularFile()) {
-//            System.out.format("\n--File: %s", t);
-//
-//        }
-       
-        
-        System.out.format("\n--File: %s", t);
-        data.put(t.getFileName(), t);
+
+
         return FileVisitResult.CONTINUE;
     }
 
@@ -134,25 +134,30 @@ public class FileWalkerTest implements FileVisitor<Path> {
 
     }
 }
+
 class Main {
 
     private static BasicFileAttributes sResult;
 
     public static void main(String[] args) throws IOException {
-        
-        
+
+
         String path = "C:\\test";
 //
         FileWalkerTest fWalker = new FileWalkerTest(path);
         Files.walkFileTree(fWalker.path, fWalker);
-       // HashMap<Path data = fWalker.data;
-        
-        System.out.println(fWalker.getChild());
-        System.out.println("\n Root: "+ fWalker.fGetRoot());
-        
-       //Path path = ...;
-       // Files.walkFileTree(path, fWalker);
-        
+        // HashMap<Path data = fWalker.data;
+
+        ArrayList<File> nodes = fWalker.fGetfnodes();
+        for (File file : nodes) {
+
+            System.out.println("Dir: " + file.toString());
+        }
+
+
+        //Path path = ...;
+        // Files.walkFileTree(path, fWalker);
+
 //
 //        sResult = fWalker.Search(path);
 //
